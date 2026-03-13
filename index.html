@@ -1,319 +1,566 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bhargava Bhat | Game Designer Portfolio</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dark: '#050507',
+                        card: 'rgba(255, 255, 255, 0.03)',
+                        cardHover: 'rgba(255, 255, 255, 0.08)',
+                        brand: {
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'scroll-left': 'scroll-left 40s linear infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        'scroll-left': {
+                            '0%': { transform: 'translateX(0)' },
+                            '100%': { transform: 'translateX(-50%)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0A0A0B; color: #a1a1aa; scroll-behavior: smooth; }
-        .mono { font-family: 'JetBrains Mono', monospace; }
+        body { 
+            background-color: #050507; 
+            color: #d4d4d8; 
+            overflow-x: hidden;
+        }
         
-        /* Hide horizontal scrollbars for project lists */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #050507; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
 
-        .project-card { 
-            min-width: 300px; 
-            background: #111112; 
-            border: 1px solid #1f1f21; 
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Glassmorphism Utilities */
+        .glass-nav {
+            background: rgba(5, 5, 7, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .project-card:hover { border-color: #3b82f6; transform: translateY(-8px); background: #161617; }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
 
-        /* MODAL OVERLAY: This entire screen scrolls now */
+        .text-gradient {
+            background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Scroll Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Modal Transitions */
         #modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.98);
-            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(0px);
+        }
+        #modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
             backdrop-filter: blur(15px);
-            overflow-y: auto; 
-            padding: 40px 20px;
         }
-
-        /* CLOSE BUTTON: Pinned to the top-right of your monitor screen */
-        .close-btn {
-            position: fixed;
-            top: 25px;
-            right: 25px;
-            z-index: 2000;
-            background: #ef4444;
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            font-weight: bold;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            transition: all 0.2s;
+        #modal-content {
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .close-btn:hover { background: #dc2626; transform: scale(1.1); }
-
-        /* Ticker Animation */
-        @keyframes scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+        #modal-overlay.open #modal-content {
+            transform: scale(1) translateY(0);
         }
-        .ticker-track {
-            display: flex;
-            width: fit-content;
-            animation: scroll 30s linear infinite;
+        
+        /* Interactive Card Image */
+        .card-img-wrapper::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, #050507 10%, transparent 80%);
+            z-index: 10;
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased selection:bg-brand-500 selection:text-white">
 
-    <div id="modal-overlay" onclick="closeModal()">
-        
-        <button class="close-btn" onclick="closeModal()">&times;</button>
-
-        <div class="flex flex-col items-center w-full">
-            <div class="bg-[#111112] border border-gray-800 rounded-3xl max-w-4xl w-full p-6 md:p-12 shadow-2xl" onclick="event.stopPropagation()">
-                
-                <h2 id="m-title" class="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter mb-8 border-l-8 border-blue-600 pl-6">Project Title</h2>
-                
-                <img id="m-image" src="" class="w-full h-auto rounded-2xl mb-12 shadow-2xl border border-gray-800">
-                
-                <div class="grid md:grid-cols-3 gap-12">
-                    <div class="md:col-span-2 space-y-10">
-                        <div>
-                            <h4 class="text-blue-500 font-bold uppercase text-[10px] mb-4 mono tracking-widest">Description</h4>
-                            <p id="m-description" class="text-gray-300 leading-relaxed text-lg"></p>
-                        </div>
-                        <div>
-                            <h4 class="text-blue-500 font-bold uppercase text-[10px] mb-4 mono tracking-widest">Core Work</h4>
-                            <ul id="m-work" class="list-disc list-inside text-gray-400 space-y-3 text-base"></ul>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-6">
-                        <div class="bg-[#161617] p-8 rounded-2xl border border-gray-800 space-y-8 h-fit">
-                            <div>
-                                <p class="text-[10px] font-bold text-gray-500 uppercase mb-2 mono">My Role</p>
-                                <p id="m-role" class="text-white font-bold text-lg"></p>
-                            </div>
-                            <div>
-                                <p class="text-[10px] font-bold text-gray-500 uppercase mb-2 mono">Tools Used</p>
-                                <p id="m-tools" class="text-white text-sm leading-relaxed"></p>
-                            </div>
-                            <a id="m-gdd" href="#" target="_blank" class="block w-full text-center bg-blue-600 text-white font-black py-4 rounded-lg hover:bg-white hover:text-black transition uppercase text-xs tracking-widest">Open GDD</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Ambient Background Glows -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-brand-600/20 blur-[120px] animate-blob"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-purple-600/20 blur-[120px] animate-blob animation-delay-2000"></div>
     </div>
 
-    <nav class="fixed w-full z-50 bg-[#0A0A0B]/90 backdrop-blur-md border-b border-gray-900 px-6 py-4">
+    <!-- Navigation -->
+    <nav class="fixed w-full z-40 glass-nav px-6 py-4 transition-all duration-300" id="navbar">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="font-black text-white tracking-tighter text-xl uppercase">Bhargava Bhat</div>
-            <div class="flex space-x-6 text-[10px] font-bold uppercase tracking-widest mono">
-                <a href="#about" class="hover:text-blue-500 transition">About</a>
-                <a href="#projects" class="hover:text-blue-500 transition">Works</a>
-                <a href="#contact" class="hover:text-blue-500 transition text-blue-500">Contact</a>
+            <a href="#" class="font-black text-white tracking-tighter text-xl uppercase z-50 group">
+                Bhargava<span class="text-brand-500 group-hover:text-white transition-colors">Bhat</span>
+            </a>
+            
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex space-x-8 text-xs font-bold uppercase tracking-widest font-mono">
+                <a href="#about" class="hover:text-brand-400 transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-brand-500 hover:after:w-full after:transition-all">About</a>
+                <a href="#projects" class="hover:text-brand-400 transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-brand-500 hover:after:w-full after:transition-all">Works</a>
+                <a href="#process" class="hover:text-brand-400 transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-brand-500 hover:after:w-full after:transition-all">Process</a>
+                <a href="#contact" class="text-brand-400 hover:text-white transition-colors">Contact</a>
             </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden text-white z-50" onclick="toggleMobileMenu()">
+                <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="fixed inset-0 bg-[#050507]/95 backdrop-blur-xl flex flex-col items-center justify-center space-y-8 text-sm font-bold uppercase tracking-widest font-mono opacity-0 pointer-events-none transition-opacity duration-300">
+            <a href="#about" onclick="toggleMobileMenu()" class="text-2xl hover:text-brand-400">About</a>
+            <a href="#projects" onclick="toggleMobileMenu()" class="text-2xl hover:text-brand-400">Works</a>
+            <a href="#process" onclick="toggleMobileMenu()" class="text-2xl hover:text-brand-400">Process</a>
+            <a href="#contact" onclick="toggleMobileMenu()" class="text-2xl text-brand-500 hover:text-white">Contact</a>
         </div>
     </nav>
 
-    <section class="min-h-screen flex flex-col justify-center px-6 lg:px-24">
-        <div class="max-w-5xl">
-            <p class="text-blue-500 mono font-bold tracking-widest mb-4">GAME DESIGNER & SYSTEMS THINKER</p>
-            <h1 class="text-6xl md:text-9xl font-black text-white mb-6 tracking-tighter leading-none uppercase">BHARGAVA <span class="bg-gradient-to-r from-blue-500 to-blue-400 bg-clip-text text-transparent">BHAT</span></h1>
-            <p class="text-xl md:text-2xl text-gray-400 max-w-3xl leading-relaxed italic font-light mb-10">
-                Crafting meaningful player interactions through gameplay systems and narrative design.
-            </p>
-            <a href="mailto:bhargavasgamelab04@gmail.com" class="inline-block bg-white text-black px-12 py-5 font-black rounded-sm hover:bg-blue-600 hover:text-white transition uppercase text-xs tracking-[0.2em] shadow-xl">📧 Hire Me</a>
+    <!-- Hero Section -->
+    <section class="min-h-[100svh] flex flex-col justify-center px-6 lg:px-24 pt-32 pb-40 relative">
+        <div class="max-w-6xl mx-auto w-full z-10">
+            <div class="reveal">
+                <p class="font-mono font-bold tracking-[0.2em] mb-6 text-brand-400 flex items-center gap-4 text-sm md:text-base">
+                    <span class="w-12 h-[2px] bg-brand-500"></span> GAME DESIGNER & SYSTEMS THINKER
+                </p>
+                <h1 class="text-6xl md:text-8xl lg:text-[9rem] font-black text-white mb-6 tracking-tighter leading-none uppercase">
+                    Bhargava <br><span class="text-gradient">Bhat</span>
+                </h1>
+                <p class="text-lg md:text-2xl text-gray-400 max-w-2xl leading-relaxed font-light mb-12">
+                    Crafting meaningful player interactions through systemic mechanics and compelling narrative design.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <a href="#projects" class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white bg-brand-600 rounded-lg overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(99,102,241,0.4)]">
+                        <span class="absolute w-0 h-0 transition-all duration-500 ease-out bg-white rounded-full group-hover:w-56 group-hover:h-56 opacity-10"></span>
+                        <span class="relative uppercase tracking-widest text-xs">View Projects</span>
+                    </a>
+                    <a href="mailto:bhargavasgamelab04@gmail.com" class="inline-flex items-center justify-center px-8 py-4 font-bold text-white glass-card rounded-lg hover:bg-white/10 transition-all uppercase tracking-widest text-xs">
+                        📧 Hire Me
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center animate-bounce opacity-50 z-20">
+            <span class="font-mono text-[10px] uppercase tracking-widest mb-2">Scroll</span>
+            <div class="w-[1px] h-12 bg-gradient-to-b from-white to-transparent"></div>
         </div>
     </section>
 
-    <div class="py-12 border-y border-gray-900 bg-[#0E0E10] overflow-hidden">
-        <div class="ticker-track space-x-16">
-            <span class="text-3xl font-black text-gray-800 italic uppercase">Game Design Documentation</span>
-            <span class="text-3xl font-black text-gray-800 italic uppercase">Core Mechanics</span>
-            <span class="text-3xl font-black text-gray-800 italic uppercase">Narrative Design</span>
-            <span class="text-3xl font-black text-gray-800 italic uppercase">Unity Engine</span>
-            <span class="text-3xl font-black text-gray-800 italic uppercase">UI/UX Wireframes</span>
+    <!-- Infinite Ticker -->
+    <div class="py-8 border-y border-white/5 bg-black/20 overflow-hidden relative glass-card">
+        <div class="absolute inset-0 bg-gradient-to-r from-[#050507] via-transparent to-[#050507] z-10 pointer-events-none"></div>
+        <div class="flex w-[200%] animate-scroll-left">
+            <div class="flex whitespace-nowrap space-x-12 md:space-x-24 px-12 items-center">
+                <span class="text-xl md:text-3xl font-black text-gray-600 uppercase tracking-wider">Game Design Documentation</span>
+                <span class="w-3 h-3 rounded-full bg-brand-500"></span>
+                <span class="text-xl md:text-3xl font-black text-gray-600 uppercase tracking-wider">Core Mechanics</span>
+                <span class="w-3 h-3 rounded-full bg-brand-500"></span>
+                <span class="text-xl md:text-3xl font-black text-gray-600 uppercase tracking-wider">Narrative Design</span>
+                <span class="w-3 h-3 rounded-full bg-brand-500"></span>
+                <span class="text-xl md:text-3xl font-black text-gray-600 uppercase tracking-wider">Unity Engine</span>
+                <span class="w-3 h-3 rounded-full bg-brand-500"></span>
+                <span class="text-xl md:text-3xl font-black text-gray-600 uppercase tracking-wider">UI/UX Wireframes</span>
+                <span class="w-3 h-3 rounded-full bg-brand-500"></span>
+            </div>
+            <!-- Duplicate for seamless loop -->
+            <div class="flex whitespace-nowrap space-x-12 md:space-x-24 px-12 items-center">
+                <span class="text-xl md:text-3xl font-black text-gray-600 uppercase tracking-wider">Game Design Documentation</span>
+                <span class="w-3 h-3 rounded-full bg-brand-500"></span>
+                <span class="text-xl md:text-3xl font-black text-gray-600 uppercase tracking-wider">Core Mechanics</span>
+                <span class="w-3 h-3 rounded-full bg-brand-500"></span>
+                <span class="text-xl md:text-3xl font-black text-gray-600 uppercase tracking-wider">Narrative Design</span>
+                <span class="w-3 h-3 rounded-full bg-brand-500"></span>
+                <span class="text-xl md:text-3xl font-black text-gray-600 uppercase tracking-wider">Unity Engine</span>
+                <span class="w-3 h-3 rounded-full bg-brand-500"></span>
+                <span class="text-xl md:text-3xl font-black text-gray-600 uppercase tracking-wider">UI/UX Wireframes</span>
+                <span class="w-3 h-3 rounded-full bg-brand-500"></span>
+            </div>
         </div>
     </div>
 
-    <section id="about" class="py-32 px-6 lg:px-24 max-w-6xl">
-        <h2 class="text-4xl font-black text-white uppercase tracking-tighter mb-10 underline decoration-blue-500 decoration-8 underline-offset-[12px]">👋 About Me</h2>
-        <div class="space-y-8 text-lg md:text-2xl text-gray-400 font-light leading-relaxed">
-            <p>I am an aspiring <span class="text-white font-bold">Game Designer</span> focused on designing gameplay systems and narrative-driven experiences. I enjoy transforming emotions into meaningful player interactions.</p>
-            <p>I have hands-on experience working with real teams, writing <span class="text-blue-500 font-bold">Game Design Documents (GDDs)</span>, and contributing as a QA tester for published games.</p>
-        </div>
-    </section>
-
-    <section id="projects" class="py-20 space-y-32">
-        <div class="px-6 lg:px-24">
-            <h2 class="text-white font-black text-xs mb-8 uppercase tracking-[0.5em] text-blue-500">01 / Game Jam Projects</h2>
-            <div class="flex overflow-x-auto gap-8 no-scrollbar pb-6">
-                <div onclick="openModal('holdon')" class="project-card p-12 rounded-3xl shrink-0 w-[400px]">
-                    <h3 class="text-white font-black text-3xl mb-4">Hold On</h3>
-                    <p class="text-gray-500">Gravity and world-flip prototype.</p>
+    <!-- About Section -->
+    <section id="about" class="py-32 px-6 lg:px-24">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16 items-center reveal">
+            <div class="w-full lg:w-1/2">
+                <div class="relative inline-block">
+                    <h2 class="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter mb-8">About <br>The <span class="text-brand-400">Designer</span></h2>
+                    <div class="absolute -left-6 -top-6 w-24 h-24 border-t-4 border-l-4 border-brand-500 opacity-50 rounded-tl-xl"></div>
                 </div>
-                <div onclick="openModal('folly')" class="project-card p-12 rounded-3xl shrink-0 w-[400px]">
-                    <h3 class="text-white font-black text-3xl mb-4">Folly's Veil</h3>
-                    <p class="text-gray-500">Psychological horror prototype.</p>
+                <div class="space-y-6 text-lg text-gray-400 font-light leading-relaxed border-l border-white/10 pl-6">
+                    <p>I am an aspiring <span class="text-white font-bold">Game Designer</span> focused on designing robust gameplay systems and narrative-driven experiences. I believe the best games transform abstract emotions into deeply meaningful player interactions.</p>
+                    <p>With hands-on experience working alongside development teams, I specialize in writing comprehensive <span class="text-brand-400 font-bold">Game Design Documents (GDDs)</span>, prototyping mechanics, and analyzing player feedback to refine the core loop.</p>
                 </div>
             </div>
-        </div>
-
-        <div class="px-6 lg:px-24">
-            <h2 class="text-white font-black text-xs mb-8 uppercase tracking-[0.5em] text-blue-500">02 / Team Collaboration</h2>
-            <div class="flex overflow-x-auto gap-8 no-scrollbar pb-6">
-                <div onclick="openModal('primal')" class="project-card p-12 rounded-3xl shrink-0 w-[450px]">
-                    <h3 class="text-white font-black text-3xl mb-4 leading-tight">Primal Breach: Serum</h3>
-                    <p class="text-gray-500">Environmental horror concept.</p>
+            <div class="w-full lg:w-1/2 grid grid-cols-2 gap-4 md:gap-6 mt-8 lg:mt-0">
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-center items-center text-center hover:-translate-y-2 transition-transform duration-300">
+                    <span class="text-4xl font-black text-white mb-2">10+</span>
+                    <span class="text-xs font-mono uppercase tracking-widest text-brand-400">Prototypes</span>
                 </div>
-                <div onclick="openModal('anomaly')" class="project-card p-12 rounded-3xl shrink-0 w-[400px]">
-                    <h3 class="text-white font-black text-3xl mb-4">Codename Anomaly</h3>
-                    <p class="text-gray-500">Mystery investigation concept.</p>
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-center items-center text-center lg:translate-y-8 hover:-translate-y-2 lg:hover:translate-y-6 transition-transform duration-300 bg-gradient-to-br from-brand-900/40 to-transparent">
+                    <span class="text-4xl font-black text-white mb-2">GDD</span>
+                    <span class="text-xs font-mono uppercase tracking-widest text-brand-400">Documentation</span>
                 </div>
-                <div onclick="openModal('bakasura')" class="project-card p-12 rounded-3xl shrink-0 w-[400px]">
-                    <h3 class="text-white font-black text-3xl mb-4">Bakasura.io</h3>
-                    <p class="text-gray-500">Mythology growth concept.</p>
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-center items-center text-center lg:-translate-y-4 hover:-translate-y-2 lg:hover:-translate-y-6 transition-transform duration-300">
+                    <span class="text-4xl font-black text-white mb-2">UI/UX</span>
+                    <span class="text-xs font-mono uppercase tracking-widest text-brand-400">Wireframing</span>
                 </div>
-            </div>
-        </div>
-
-        <div class="px-6 lg:px-24">
-            <h2 class="text-white font-black text-xs mb-8 uppercase tracking-[0.5em] text-blue-500">03 / Solo & Board Games</h2>
-            <div class="flex overflow-x-auto gap-8 no-scrollbar pb-6">
-                <div onclick="openModal('puppet')" class="project-card p-12 rounded-3xl shrink-0 w-[400px]">
-                    <h3 class="text-white font-black text-3xl mb-4">Puppet of Hell</h3>
-                    <p class="text-gray-500">Strategic board game design.</p>
-                </div>
-                <div onclick="openModal('mithai')" class="project-card p-12 rounded-3xl shrink-0 w-[400px]">
-                    <h3 class="text-white font-black text-3xl mb-4">Mithai Legends</h3>
-                    <p class="text-gray-500">2.5D endless flyer flyer.</p>
-                </div>
-                <div onclick="openModal('zenitsu')" class="project-card p-12 rounded-3xl shrink-0 w-[400px]">
-                    <h3 class="text-white font-black text-3xl mb-4">Zenitsu Metroidvania</h3>
-                    <p class="text-gray-500">Combat learning project.</p>
+                <div class="glass-card p-6 rounded-2xl flex flex-col justify-center items-center text-center lg:translate-y-4 hover:-translate-y-2 lg:hover:translate-y-2 transition-transform duration-300">
+                    <span class="text-4xl font-black text-white mb-2">Unity</span>
+                    <span class="text-xs font-mono uppercase tracking-widest text-brand-400">Engine Exp.</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="process" class="py-32 px-6 lg:px-24 bg-[#0E0E10]">
-        <h2 class="text-4xl font-black text-white uppercase tracking-tighter mb-16 italic underline decoration-blue-500 decoration-8 underline-offset-[12px]">🧠 My Design Process</h2>
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
-            <div class="p-10 bg-[#111112] border border-gray-900 rounded-3xl hover:border-blue-500 transition-colors">
-                <p class="text-blue-500 mono font-bold text-xs mb-4">01</p>
-                <h4 class="text-white font-bold mb-4 uppercase tracking-widest text-sm">Theme</h4>
-                <p class="text-sm text-gray-500 leading-relaxed">Defining the core emotional experience.</p>
+    <!-- Projects Section -->
+    <section id="projects" class="py-24 px-6 lg:px-24 bg-black/40 relative">
+        <div class="max-w-7xl mx-auto">
+            <h2 class="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter mb-20 text-center reveal">Selected <span class="text-gradient">Works</span></h2>
+
+            <!-- Category 1 -->
+            <div class="mb-24 reveal">
+                <div class="flex items-center gap-4 mb-10">
+                    <span class="w-12 h-[1px] bg-brand-500"></span>
+                    <h3 class="text-white font-mono text-sm uppercase tracking-[0.3em] text-brand-400">01 / Game Jam Projects</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Card -->
+                    <div onclick="openModal('holdon')" class="group glass-card rounded-2xl overflow-hidden cursor-pointer relative h-[400px]">
+                        <div class="absolute inset-0 card-img-wrapper">
+                            <img src="https://i.postimg.cc/c1jKzzbk/holdon.png" alt="Hold On" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700">
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-8 z-20 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                            <span class="px-3 py-1 bg-brand-600 text-white text-[10px] font-mono uppercase tracking-wider rounded-full mb-4 inline-block opacity-0 group-hover:opacity-100 transition-opacity delay-100">Gravity Mechanics</span>
+                            <h4 class="text-3xl font-black text-white mb-2">Hold On</h4>
+                            <p class="text-gray-300 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-150 line-clamp-2">A fast-paced prototype built around gravity-flip mechanics. Players navigate shifting perspectives.</p>
+                        </div>
+                    </div>
+                    <!-- Card -->
+                    <div onclick="openModal('folly')" class="group glass-card rounded-2xl overflow-hidden cursor-pointer relative h-[400px]">
+                        <div class="absolute inset-0 card-img-wrapper">
+                            <img src="https://i.postimg.cc/SQ5XPPvH/follysveil.png" alt="Folly's Veil" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700">
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-8 z-20 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                            <span class="px-3 py-1 bg-brand-600 text-white text-[10px] font-mono uppercase tracking-wider rounded-full mb-4 inline-block opacity-0 group-hover:opacity-100 transition-opacity delay-100">Horror</span>
+                            <h4 class="text-3xl font-black text-white mb-2">Folly's Veil</h4>
+                            <p class="text-gray-300 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-150 line-clamp-2">An illusion-based psychological horror focused on environmental storytelling.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="p-10 bg-[#111112] border border-gray-900 rounded-3xl hover:border-blue-500 transition-colors">
-                <p class="text-blue-500 mono font-bold text-xs mb-4">02</p>
-                <h4 class="text-white font-bold mb-4 uppercase tracking-widest text-sm">Mechanic</h4>
-                <p class="text-sm text-gray-500 leading-relaxed">Designing the primary player actions.</p>
+
+            <!-- Category 2 -->
+            <div class="mb-24 reveal">
+                <div class="flex items-center gap-4 mb-10">
+                    <span class="w-12 h-[1px] bg-brand-500"></span>
+                    <h3 class="text-white font-mono text-sm uppercase tracking-[0.3em] text-brand-400">02 / Team Collaboration</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div onclick="openModal('primal')" class="group glass-card rounded-2xl overflow-hidden cursor-pointer relative h-[350px]">
+                        <div class="absolute inset-0 card-img-wrapper">
+                            <img src="https://i.postimg.cc/44MK000Z/primalbreach.png" alt="Primal Breach" class="w-full h-full object-cover opacity-50 group-hover:opacity-90 group-hover:scale-110 transition-all duration-700">
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-6 z-20">
+                            <h4 class="text-2xl font-black text-white mb-1 group-hover:text-brand-400 transition-colors">Primal Breach: Serum</h4>
+                            <p class="text-gray-400 text-xs font-mono uppercase tracking-wider">Environmental Horror</p>
+                        </div>
+                    </div>
+                    <div onclick="openModal('anomaly')" class="group glass-card rounded-2xl overflow-hidden cursor-pointer relative h-[350px]">
+                        <div class="absolute inset-0 card-img-wrapper">
+                            <img src="https://i.postimg.cc/QNPBzzyw/codenameanomaly.png" alt="Anomaly" class="w-full h-full object-cover opacity-50 group-hover:opacity-90 group-hover:scale-110 transition-all duration-700">
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-6 z-20">
+                            <h4 class="text-2xl font-black text-white mb-1 group-hover:text-brand-400 transition-colors">Codename Anomaly</h4>
+                            <p class="text-gray-400 text-xs font-mono uppercase tracking-wider">Mystery Investigation</p>
+                        </div>
+                    </div>
+                    <div onclick="openModal('bakasura')" class="group glass-card rounded-2xl overflow-hidden cursor-pointer relative h-[350px]">
+                        <div class="absolute inset-0 card-img-wrapper">
+                            <img src="https://i.postimg.cc/yxwkSJR0/bakasura.jpg" alt="Bakasura" class="w-full h-full object-cover opacity-50 group-hover:opacity-90 group-hover:scale-110 transition-all duration-700">
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-6 z-20">
+                            <h4 class="text-2xl font-black text-white mb-1 group-hover:text-brand-400 transition-colors">Bakasura.io</h4>
+                            <p class="text-gray-400 text-xs font-mono uppercase tracking-wider">Multiplayer Growth</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="p-10 bg-[#111112] border border-gray-900 rounded-3xl hover:border-blue-500 transition-colors">
-                <p class="text-blue-500 mono font-bold text-xs mb-4">03</p>
-                <h4 class="text-white font-bold mb-4 uppercase tracking-widest text-sm">Journey</h4>
-                <p class="text-sm text-gray-500 leading-relaxed">Mapping how players learn and master.</p>
-            </div>
-            <div class="p-10 bg-[#111112] border border-gray-900 rounded-3xl hover:border-blue-500 transition-colors">
-                <p class="text-blue-500 mono font-bold text-xs mb-4">04</p>
-                <h4 class="text-white font-bold mb-4 uppercase tracking-widest text-sm">Systems</h4>
-                <p class="text-sm text-gray-500 leading-relaxed">Expanding loops into full challenges.</p>
-            </div>
-            <div class="p-10 bg-[#111112] border border-gray-900 rounded-3xl hover:border-blue-500 transition-colors">
-                <p class="text-blue-500 mono font-bold text-xs mb-4">05</p>
-                <h4 class="text-white font-bold mb-4 uppercase tracking-widest text-sm">Refine</h4>
-                <p class="text-sm text-gray-500 leading-relaxed">Polishing via testing and feedback.</p>
+
+            <!-- Category 3 -->
+            <div class="reveal">
+                <div class="flex items-center gap-4 mb-10">
+                    <span class="w-12 h-[1px] bg-brand-500"></span>
+                    <h3 class="text-white font-mono text-sm uppercase tracking-[0.3em] text-brand-400">03 / Solo & Board Games</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div onclick="openModal('puppet')" class="group glass-card rounded-2xl overflow-hidden cursor-pointer relative h-[350px]">
+                        <div class="absolute inset-0 card-img-wrapper">
+                            <img src="https://i.postimg.cc/44MK000R/puppetofhell.png" alt="Puppet of Hell" class="w-full h-full object-cover opacity-50 group-hover:opacity-90 group-hover:scale-110 transition-all duration-700">
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-6 z-20">
+                            <h4 class="text-2xl font-black text-white mb-1 group-hover:text-brand-400 transition-colors">Puppet of Hell</h4>
+                            <p class="text-gray-400 text-xs font-mono uppercase tracking-wider">Board Game Design</p>
+                        </div>
+                    </div>
+                    <div onclick="openModal('mithai')" class="group glass-card rounded-2xl overflow-hidden cursor-pointer relative h-[350px]">
+                        <div class="absolute inset-0 card-img-wrapper">
+                            <img src="https://i.postimg.cc/L47qWWbr/mithailegends.jpg" alt="Mithai Legends" class="w-full h-full object-cover opacity-50 group-hover:opacity-90 group-hover:scale-110 transition-all duration-700">
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-6 z-20">
+                            <h4 class="text-2xl font-black text-white mb-1 group-hover:text-brand-400 transition-colors">Mithai Legends</h4>
+                            <p class="text-gray-400 text-xs font-mono uppercase tracking-wider">2.5D Endless Flyer</p>
+                        </div>
+                    </div>
+                    <div onclick="openModal('zenitsu')" class="group glass-card rounded-2xl overflow-hidden cursor-pointer relative h-[350px]">
+                        <div class="absolute inset-0 card-img-wrapper">
+                            <img src="https://i.postimg.cc/CMtZ2220/zenitsumetroidvania.jpg" alt="Zenitsu Metroidvania" class="w-full h-full object-cover opacity-50 group-hover:opacity-90 group-hover:scale-110 transition-all duration-700">
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-6 z-20">
+                            <h4 class="text-2xl font-black text-white mb-1 group-hover:text-brand-400 transition-colors">Zenitsu Metroidvania</h4>
+                            <p class="text-gray-400 text-xs font-mono uppercase tracking-wider">Combat Prototyping</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <footer id="contact" class="py-32 px-6 border-t border-gray-900 text-center">
-        <h2 class="text-white text-6xl font-black uppercase tracking-tighter mb-10 italic">📬 CONTACT</h2>
-        <a href="mailto:bhargavasgamelab04@gmail.com" class="text-blue-500 text-3xl font-black hover:text-white transition mono">bhargavasgamelab04@gmail.com</a>
-        <p class="mt-24 text-[10px] text-gray-800 mono tracking-[0.5em]">© 2026 BHARGAVA BHAT | GAME DESIGNER</p>
+    <!-- Process Section -->
+    <section id="process" class="py-32 px-6 lg:px-24">
+        <div class="max-w-7xl mx-auto">
+            <h2 class="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter mb-16 text-center reveal">Design <span class="text-gradient">Process</span></h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4 relative reveal">
+                <!-- Connecting Line (Desktop) -->
+                <div class="hidden lg:block absolute top-1/2 left-10 right-10 h-[2px] bg-gradient-to-r from-transparent via-brand-500/50 to-transparent -translate-y-1/2 z-0"></div>
+                
+                <div class="glass-card p-8 rounded-2xl relative z-10 hover:border-brand-500/50 transition-colors group bg-[#050507]">
+                    <div class="text-brand-500 font-mono font-bold text-3xl mb-4 opacity-30 group-hover:opacity-100 transition-opacity">01</div>
+                    <h4 class="text-white font-bold mb-3 uppercase tracking-widest text-sm group-hover:text-brand-400 transition-colors">Theme</h4>
+                    <p class="text-sm text-gray-400 leading-relaxed">Defining the core emotional experience and aesthetic vision.</p>
+                </div>
+                
+                <div class="glass-card p-8 rounded-2xl relative z-10 hover:border-brand-500/50 transition-colors group bg-[#050507] lg:translate-y-8">
+                    <div class="text-brand-500 font-mono font-bold text-3xl mb-4 opacity-30 group-hover:opacity-100 transition-opacity">02</div>
+                    <h4 class="text-white font-bold mb-3 uppercase tracking-widest text-sm group-hover:text-brand-400 transition-colors">Mechanic</h4>
+                    <p class="text-sm text-gray-400 leading-relaxed">Designing the primary player actions and moment-to-moment loops.</p>
+                </div>
+
+                <div class="glass-card p-8 rounded-2xl relative z-10 hover:border-brand-500/50 transition-colors group bg-[#050507]">
+                    <div class="text-brand-500 font-mono font-bold text-3xl mb-4 opacity-30 group-hover:opacity-100 transition-opacity">03</div>
+                    <h4 class="text-white font-bold mb-3 uppercase tracking-widest text-sm group-hover:text-brand-400 transition-colors">Journey</h4>
+                    <p class="text-sm text-gray-400 leading-relaxed">Mapping progression, difficulty curves, and player mastery.</p>
+                </div>
+
+                <div class="glass-card p-8 rounded-2xl relative z-10 hover:border-brand-500/50 transition-colors group bg-[#050507] lg:translate-y-8">
+                    <div class="text-brand-500 font-mono font-bold text-3xl mb-4 opacity-30 group-hover:opacity-100 transition-opacity">04</div>
+                    <h4 class="text-white font-bold mb-3 uppercase tracking-widest text-sm group-hover:text-brand-400 transition-colors">Systems</h4>
+                    <p class="text-sm text-gray-400 leading-relaxed">Expanding core loops into full, interconnected challenges.</p>
+                </div>
+
+                <div class="glass-card p-8 rounded-2xl relative z-10 hover:border-brand-500/50 transition-colors group bg-[#050507]">
+                    <div class="text-brand-500 font-mono font-bold text-3xl mb-4 opacity-30 group-hover:opacity-100 transition-opacity">05</div>
+                    <h4 class="text-white font-bold mb-3 uppercase tracking-widest text-sm group-hover:text-brand-400 transition-colors">Refine</h4>
+                    <p class="text-sm text-gray-400 leading-relaxed">Polishing the experience through playtesting and iteration.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer / Contact -->
+    <footer id="contact" class="py-32 px-6 border-t border-white/5 bg-gradient-to-b from-transparent to-[#0a0a0f] relative overflow-hidden">
+        <div class="absolute bottom-[-20%] left-1/2 -translate-x-1/2 w-[80vw] h-[50vw] rounded-[100%] bg-brand-600/10 blur-[100px] pointer-events-none"></div>
+        <div class="max-w-4xl mx-auto text-center relative z-10 reveal">
+            <h2 class="text-brand-400 font-mono text-sm uppercase tracking-[0.4em] mb-6">Let's Build Something Great</h2>
+            <h3 class="text-white text-5xl md:text-7xl font-black uppercase tracking-tighter mb-12">Get In Touch</h3>
+            
+            <a href="mailto:bhargavasgamelab04@gmail.com" class="group relative inline-flex items-center justify-center p-1 font-bold text-white bg-gradient-to-r from-brand-600 to-purple-600 rounded-xl overflow-hidden hover:scale-105 transition-transform duration-300">
+                <span class="absolute w-full h-full bg-gradient-to-r from-brand-400 to-purple-400 opacity-0 group-hover:opacity-50 transition-opacity duration-300"></span>
+                <span class="relative px-8 py-4 bg-[#050507] rounded-lg w-full h-full flex items-center justify-center gap-3 font-mono md:text-xl">
+                    <svg class="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    bhargavasgamelab04@gmail.com
+                </span>
+            </a>
+            
+            <div class="mt-32 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-[11px] text-gray-500 font-mono tracking-[0.2em] uppercase">© 2026 BHARGAVA BHAT</p>
+                <div class="flex space-x-4">
+                    <!-- Placeholder icons, replace hrefs with real links -->
+                    <a href="#" class="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white hover:bg-brand-600/20 transition-all">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white hover:bg-brand-600/20 transition-all">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
     </footer>
 
+    <!-- Full Screen Modal -->
+    <div id="modal-overlay" class="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 bg-black/80" onclick="closeModal()">
+        <!-- Close Button -->
+        <button class="absolute top-6 right-6 md:top-10 md:right-10 z-[110] w-12 h-12 glass-card rounded-full flex items-center justify-center text-white hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/50 transition-all cursor-pointer" onclick="closeModal()">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+
+        <!-- Modal Content -->
+        <div id="modal-content" class="w-full max-w-5xl bg-[#0a0a0f] border border-white/10 rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] max-h-[90vh] overflow-y-auto flex flex-col md:flex-row" onclick="event.stopPropagation()">
+            
+            <!-- Left side: Image -->
+            <div class="w-full md:w-1/2 relative bg-black min-h-[300px] md:min-h-full">
+                <img id="m-image" src="" class="absolute inset-0 w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#0a0a0f] to-transparent"></div>
+            </div>
+
+            <!-- Right side: Content -->
+            <div class="w-full md:w-1/2 p-8 md:p-12 flex flex-col">
+                <h2 id="m-title" class="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter mb-6 relative">
+                    <span class="absolute -left-8 top-1/2 -translate-y-1/2 w-4 h-8 bg-brand-500 rounded-r-full hidden md:block"></span>
+                    Project Title
+                </h2>
+                
+                <div class="mb-8">
+                    <h4 class="text-brand-400 font-mono text-[10px] uppercase tracking-widest mb-3">Project Overview</h4>
+                    <p id="m-description" class="text-gray-300 leading-relaxed text-base"></p>
+                </div>
+
+                <div class="mb-8 flex-grow">
+                    <h4 class="text-brand-400 font-mono text-[10px] uppercase tracking-widest mb-3">Core Contributions</h4>
+                    <ul id="m-work" class="space-y-2 text-gray-300">
+                        <!-- Items populated by JS -->
+                    </ul>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="glass-card p-4 rounded-xl">
+                        <p class="text-[10px] font-mono text-gray-500 uppercase mb-1">Role</p>
+                        <p id="m-role" class="text-white font-bold text-sm"></p>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <p class="text-[10px] font-mono text-gray-500 uppercase mb-1">Tools</p>
+                        <p id="m-tools" class="text-white font-bold text-sm"></p>
+                    </div>
+                </div>
+
+                <a id="m-gdd" href="#" target="_blank" class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white bg-white/10 border border-white/20 rounded-xl overflow-hidden transition-all hover:bg-brand-600 hover:border-brand-500 w-full text-center">
+                    <span class="relative uppercase tracking-widest text-xs flex items-center justify-center gap-2">
+                        Open Game Design Document
+                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </span>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Project Data Configuration
         const projectData = {
             'holdon': {
                 title: "Hold On", role: "Game Designer", tools: "Google Docs, Miro",
                 image: "https://i.postimg.cc/c1jKzzbk/holdon.png",
-                description: "A fast-paced prototype built around gravity-flip mechanics. Players navigate shifting perspectives to create tension.",
+                description: "A fast-paced prototype built around gravity-flip mechanics. Players navigate shifting perspectives to create tension, requiring rapid reflexes and spatial awareness.",
                 work: ["Designed core mechanics", "Defined puzzle progression", "Wrote GDD"],
                 gdd: "https://docs.google.com/document/d/1XkfIk_YT1Qhrq3gadXf-8G10fL7kqwTn99voxox0UXw/edit?usp=sharing"
             },
             'folly': {
                 title: "Folly's Veil", role: "Game Designer", tools: "Google Docs, Miro",
                 image: "https://i.postimg.cc/SQ5XPPvH/follysveil.png",
-                description: "An illusion-based psychological horror focused on environmental storytelling.",
+                description: "An illusion-based psychological horror focused on environmental storytelling. Uses subtle auditory and visual cues to disorient the player.",
                 work: ["Designed illusion systems", "Created narrative structure", "Documented design"],
                 gdd: "https://docs.google.com/document/d/1rGUQ8Fest1VilZoIChhWPxCSms_6La2MXFgfkAqk0FQ/edit?usp=sharing"
             },
             'primal': {
-                title: "Primal Breach: Serum", role: "Game Designer", tools: "Google Docs, Miro",
+                title: "Primal Breach", role: "Game Designer", tools: "Google Docs, Miro",
                 image: "https://i.postimg.cc/44MK000Z/primalbreach.png",
-                description: "Environmental storytelling horror set in a secret biological laboratory.",
+                description: "Environmental storytelling horror set in a secret biological laboratory. Focuses heavily on resource management and avoiding an unkillable threat.",
                 work: ["Puzzle design", "Environmental narrative", "GDD management"],
                 gdd: "https://docs.google.com/document/d/1F8v2VgoIPBPd24RMF4WAIHVeQxTZVLWnlvwM3ltOnrg/edit?usp=sharing"
             },
             'anomaly': {
-                title: "Codename Anomaly", role: "Game Designer", tools: "Google Docs, Miro",
+                title: "Code: Anomaly", role: "Game Designer", tools: "Google Docs, Miro",
                 image: "https://i.postimg.cc/QNPBzzyw/codenameanomaly.png",
-                description: "Mystery investigation in the Himalayas from a stationary vehicle.",
+                description: "Mystery investigation set in the isolated peaks of the Himalayas, played entirely from the perspective of a stationary vehicle monitoring cameras.",
                 work: ["Anomaly interaction", "Narrative flow", "Core investigation"],
                 gdd: "https://docs.google.com/document/d/10hwy6bAjd0IMcP_POdpZY9H2qx5bv0ktX1LDsL3aYb0/edit?usp=sharing"
             },
             'bakasura': {
                 title: "Bakasura.io", role: "Game Designer", tools: "Google Docs",
                 image: "https://i.postimg.cc/yxwkSJR0/bakasura.jpg",
-                description: "Multiplayer growth game inspired by mythology. Consume objects to scale power.",
+                description: "A multiplayer growth game inspired by Indian mythology. Players consume objects and lesser entities to scale their power and size.",
                 work: ["Growth loop design", "Scaling systems", "Complete GDD"],
                 gdd: "https://docs.google.com/document/d/1Vz9iUEC1Zrz-wbVqIuh1djzoYzeqG_n75fQOyj5yCbY/edit?usp=sharing"
             },
             'puppet': {
                 title: "Puppet of Hell", role: "Game Designer", tools: "Google Docs, Miro",
                 image: "https://i.postimg.cc/44MK000R/puppetofhell.png",
-                description: "Strategic board game design focused on calculated player manipulation.",
+                description: "A highly strategic board game design focused on calculated player manipulation and asymmetrical resource control.",
                 work: ["Rule system design", "Interaction mechanics", "Refined balance"],
                 gdd: "https://docs.google.com/document/d/1Rpz56c9-mW4dCUYfIRiqUQ4LmMFjGIGli7pHii35mq0/edit?usp=sharing"
             },
             'mithai': {
                 title: "Mithai Legends", role: "Game Designer", tools: "Notion",
                 image: "https://i.postimg.cc/L47qWWbr/mithailegends.jpg",
-                description: "2.5D flyer project inspired by Indian sweets and festivals.",
+                description: "A vibrant 2.5D flyer project inspired by Indian sweets and festivals. Fast-paced endless runner mechanics mixed with collection combos.",
                 work: ["Endless loop design", "Progression systems", "Wrote the GDD"],
                 gdd: "https://www.notion.so/Mithai-Legends-GDD-250af56350ad80419943cb8ead841a6d?source=copy_link"
             },
             'zenitsu': {
-                title: "Zenitsu Metroidvania", role: "Developer", tools: "Unity, Google Docs",
+                title: "Zenitsu Metroid", role: "Developer", tools: "Unity, Docs",
                 image: "https://i.postimg.cc/CMtZ2220/zenitsumetroidvania.jpg",
-                description: "Metroidvania learning project focusing on combat and ability progression.",
+                description: "A passionate Metroidvania learning project focusing heavily on crisp combat mechanics and ability-gated progression.",
                 work: ["Character abilities", "Unity prototyping", "Gameplay documentation"],
-                gdd: "Work in progress(will be updated)"
-            },
-            'campsite': {
-                title: "Campsite Survival", role: "Game Designer", tools: "Astrocade",
-                image: "https://i.postimg.cc/3r6yqqcq/campsitesurvival.png",
-                description: "Survival prototype exploring wilderness resource management.",
-                work: ["Survival loop", "Player objectives", "AI-assisted workflow"],
-                gdd: "https://docs.google.com/document/d/1u2UPd-o0IUMYOL4gCK6MrOgfVg3jVPxCCfUeaPYhhJQ/edit?usp=sharing"
-            },
-            'zenrush': {
-                title: "Zen Rush", role: "Game Designer", tools: "Astrocade",
-                image: "https://i.postimg.cc/DfDWNNNK/zenrush.png",
-                description: "Fast-paced reaction mechanics exploring procedural challenges.",
-                work: ["Reaction system", "Procedural concepts", "Documented flow"],
-                gdd: "https://docs.google.com/document/d/1ErDTK6fhnn1q6E3oAyCWE1AQV4hFcJpFyemzWCvrWz4/edit?usp=sharing"
+                gdd: "#"
             }
         };
 
+        // Modal Logic
         function openModal(id) {
             const data = projectData[id];
             if(!data) return;
@@ -322,28 +569,90 @@
             document.getElementById('m-description').innerText = data.description;
             document.getElementById('m-role').innerText = data.role;
             document.getElementById('m-tools').innerText = data.tools;
-            document.getElementById('m-gdd').href = data.gdd;
+            
+            const gddBtn = document.getElementById('m-gdd');
+            if(data.gdd === "#" || data.gdd.includes("Work in progress")) {
+                gddBtn.innerText = "GDD in Progress";
+                gddBtn.href = "#";
+                gddBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                gddBtn.innerHTML = `Open Game Design Document <svg class="w-4 h-4 ml-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>`;
+                gddBtn.href = data.gdd;
+                gddBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
 
             const workList = document.getElementById('m-work');
             workList.innerHTML = '';
             data.work.forEach(item => {
                 const li = document.createElement('li');
-                li.innerText = item;
+                li.className = "flex items-start gap-2 text-sm";
+                li.innerHTML = `<span class="text-brand-500 mt-1">▹</span> ${item}`;
                 workList.appendChild(li);
             });
 
             document.getElementById('m-image').src = data.image;
 
             const modal = document.getElementById('modal-overlay');
-            modal.style.display = 'block';
-            modal.scrollTo(0,0); // Reset scroll to top
-            document.body.style.overflow = 'hidden'; // Lock background
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden';
         }
 
         function closeModal() {
-            document.getElementById('modal-overlay').style.display = 'none';
-            document.body.style.overflow = 'auto'; // Unlock background
+            const modal = document.getElementById('modal-overlay');
+            modal.classList.remove('open');
+            document.body.style.overflow = 'auto';
         }
+
+        // Mobile Menu Logic
+        let isMenuOpen = false;
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            isMenuOpen = !isMenuOpen;
+            
+            if (isMenuOpen) {
+                menu.classList.remove('opacity-0', 'pointer-events-none');
+                document.body.style.overflow = 'hidden';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
+            } else {
+                menu.classList.add('opacity-0', 'pointer-events-none');
+                document.body.style.overflow = 'auto';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>';
+            }
+        }
+
+        // Scroll Reveal Animation Observer
+        document.addEventListener("DOMContentLoaded", () => {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.15
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        // Optional: Stop observing once revealed
+                        // observer.unobserve(entry.target); 
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.reveal').forEach((el) => {
+                observer.observe(el);
+            });
+
+            // Navbar background on scroll
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('shadow-lg', 'bg-[#050507]/90');
+                } else {
+                    navbar.classList.remove('shadow-lg', 'bg-[#050507]/90');
+                }
+            });
+        });
     </script>
 </body>
 </html>
